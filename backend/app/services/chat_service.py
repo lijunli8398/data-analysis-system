@@ -58,32 +58,65 @@ class ChatService:
             qa = EducationDataQA(str(data_source))
             result = qa.answer(question)
             
-            # 将结果转换为字符串
+            # 将结果转换为 Markdown 格式的字符串
             if isinstance(result, dict):
                 # 如果有错误
                 if 'error' in result:
                     answer = f"抱歉，{result['error']}"
-                # 构建格式化的回答
+                # 构建格式化的 Markdown 回答
                 else:
                     parts = []
                     
-                    # 添加摘要
-                    if 'summary' in result and result['summary']:
-                        parts.append(result['summary'])
+                    # 添加分析路径说明
+                    if 'analysis_path' in result and result['analysis_path']:
+                        parts.append("**分析步骤：**")
+                        for i, step in enumerate(result['analysis_path'], 1):
+                            parts.append(f"{i}. {step}")
                     
-                    # 添加表格数据
+                    # 添加表格数据（Markdown 格式）
                     if 'table' in result and result['table']:
                         import pandas as pd
                         df = pd.DataFrame(result['table'])
-                        parts.append("\n" + df.to_string(index=False))
+                        
+                        # 格式化数值：保留2位小数
+                        for col in df.columns:
+                            if df[col].dtype in ['float64', 'float32', 'int64', 'int32']:
+                                df[col] = df[col].apply(lambda x: round(x, 2) if pd.notna(x) else x)
+                        
+                        # 手动生成 Markdown 表格
+                        cols = list(df.columns)
+                        lines = []
+                        # 表头
+                        lines.append('| ' + ' | '.join(str(c) for c in cols) + ' |')
+                        # 分隔线
+                        lines.append('| ' + ' | '.join(['---'] * len(cols)) + ' |')
+                        # 数据行
+                        for _, row in df.iterrows():
+                            row_values = []
+                            for v in row:
+                                if pd.notna(v):
+                                    if isinstance(v, float):
+                                        row_values.append(f'{v:.2f}')
+                                    else:
+                                        row_values.append(str(v))
+                                else:
+                                    row_values.append('')
+                            lines.append('| ' + ' | '.join(row_values) + ' |')
+                        parts.append('\n'.join(lines))
+                    
+                    # 添加摘要
+                    if 'summary' in result and result['summary']:
+                        parts.append("**分析结论：**")
+                        parts.append(result['summary'])
                     
                     # 添加关键发现
                     if 'key_findings' in result and result['key_findings']:
-                        parts.append("\n关键发现：")
+                        parts.append("**关键发现：**")
                         for finding in result['key_findings']:
                             parts.append(f"- {finding}")
                     
-                    answer = "\n".join(parts) if parts else "未找到相关数据"
+                    # 使用单个换行连接，避免空行
+                    answer = '\n'.join(parts) if parts else "未找到相关数据"
             else:
                 answer = str(result)
             

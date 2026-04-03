@@ -538,26 +538,45 @@ class QueryExecutor:
         if 'filtered_data' in self.intermediate_results:
             df = self.intermediate_results['filtered_data']
             
-            # 检查是否需要按班级和象限统计
-            if '班级' in df.columns and '象限' in df.columns:
-                quadrant_by_class = df.groupby(['班级', '象限']).size().unstack(fill_value=0)
+            # 检查是否需要按维度统计
+            if 'filtered_data' in self.intermediate_results:
+                df = self.intermediate_results['filtered_data']
                 
-                table_data = []
-                for cls in sorted(quadrant_by_class.index):
-                    row = {'班级': cls, '总人数': int(df[df['班级'] == cls].shape[0])}
-                    for q in ['第一象限-优势发展型', '第二象限-逆境成长型', 
-                             '第三象限-潜力待发型', '第四象限-重点关注型']:
-                        row[q.split('-')[0]] = int(quadrant_by_class.loc[cls, q]) if q in quadrant_by_class.columns else 0
-                    table_data.append(row)
+                # 根据用户问题中的实体决定聚合维度
+                group_by = None
+                for entity in path.intent['entities']:
+                    if entity['type'] == 'school':
+                        group_by = '学校代码'
+                        break
+                    elif entity['type'] == 'class':
+                        group_by = '班级'
+                        break
                 
-                return {
-                    'status': 'success',
-                    'question': path.question,
-                    'question_type': path.intent['type'],
-                    'table': table_data,
-                    'summary': f"共{len(df)}名学生，分布在{len(quadrant_by_class.index)}个班级",
-                    'filter_conditions': [f"{f['type']}={f['value']}" for f in path.intent['filters']]
-                }
+                # 如果没有明确维度，默认按班级
+                if group_by is None and '象限' in question:
+                    group_by = '班级'
+                
+                # 按维度和象限统计
+                if group_by and group_by in df.columns and '象限' in df.columns:
+                    quadrant_by_dim = df.groupby([group_by, '象限']).size().unstack(fill_value=0)
+                    
+                    table_data = []
+                    for dim_val in sorted(quadrant_by_dim.index):
+                        row = {group_by: dim_val, '总人数': int(df[df[group_by] == dim_val].shape[0])}
+                        for q in ['第一象限-优势发展型', '第二象限-逆境成长型', 
+                                 '第三象限-潜力待发型', '第四象限-重点关注型']:
+                            q_short = q.split('-')[0]
+                            row[q_short] = int(quadrant_by_dim.loc[dim_val, q]) if q in quadrant_by_dim.columns else 0
+                        table_data.append(row)
+                    
+                    return {
+                        'status': 'success',
+                        'question': path.question,
+                        'question_type': path.intent['type'],
+                        'table': table_data,
+                        'summary': f"共{len(df)}名学生，分布在{len(quadrant_by_dim.index)}个{group_by}",
+                        'filter_conditions': [f"{f['type']}={f['value']}" for f in path.intent['filters']]
+                    }
         
         return result
 
