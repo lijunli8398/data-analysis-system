@@ -1,0 +1,55 @@
+{
+  "description": "教育学情数据分析配置示例",
+  "indicators": {
+    "environment": [
+      "成长环境_亲子关系",
+      "成长环境_师生关系",
+      "成长环境_同伴关系",
+      "成长环境_校园安全"
+    ],
+    "development": [
+      "学生发展_身心健康",
+      "学生发展_情绪状态",
+      "学生发展_运动健康",
+      "学生发展_学习创新机会",
+      "学生发展_学习习惯",
+      "学生发展_学业达标"
+    ]
+  },
+  "indicator_names": {
+    "成长环境_亲子关系": "亲子关系",
+    "成长环境_师生关系": "师生关系",
+    "成长环境_同伴关系": "同伴关系",
+    "成长环境_校园安全": "校园安全",
+    "学生发展_身心健康": "身心健康",
+    "学生发展_情绪状态": "情绪状态",
+    "学生发展_运动健康": "运动健康",
+    "学生发展_学习创新机会": "学习创新机会",
+    "学生发展_学习习惯": "学习习惯",
+    "学生发展_学业达标": "学业达标"
+  },
+  "thresholds": {
+    "risk": 60,
+    "env_median": null,
+    "dev_median": null
+  },
+  "analysis_options": {
+    "skip_header_rows": 3,
+    "clean_dirty_data": true,
+    "drop_na": true,
+    "verbose": false
+  },
+  "output_options": {
+    "generate_word_report": true,
+    "generate_charts": true,
+    "generate_csv_data": true,
+    "chart_dpi": 300,
+    "chart_font": "SimHei"
+  },
+  "quadrant_names": {
+    "q1": "第一象限-优势发展型",
+    "q2": "第二象限-逆境成长型",
+    "q3": "第三象限-潜力待发型",
+    "q4": "第四象限-重点关注型"
+  }
+}

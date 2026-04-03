@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # 后端服务
+  backend:
+    build: ./backend
+    container_name: data-analysis-backend
+    restart: always
+    ports:
+      - "8502:8502"
+    volumes:
+      # 数据库文件
+      - ./data/db:/app/data
+      # 上传的源数据文件
+      - ./data/uploads:/app/data/uploads
+      # 生成的报告
+      - ./data/reports:/app/data/reports
+      # 生成的看板
+      - ./data/dashboards:/app/data/dashboards
+      # 分析结果CSV
+      - ./data/results:/app/data/results
+      # Skills目录（可选，便于更新）
+      - ./backend/skills:/app/skills:ro
+    environment:
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-data-analysis-secret-2026}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - VIEWER_PASSWORD=${VIEWER_PASSWORD:-viewer123}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8502/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 前端服务
+  frontend:
+    build: ./frontend
+    container_name: data-analysis-frontend
+    restart: always
+    ports:
+      - "8500:80"
+    depends_on:
+      - backend
+    environment:
+      - API_URL=http://backend:8502
+
+volumes:
+  data-volume:
