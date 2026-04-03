@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析系统 - 查看者门户</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --dark: #1a202c;
+            --light: #f7fafc;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 登录页面 */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 50px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-logo i {
+            font-size: 60px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-top: 15px;
+        }
+
+        .login-logo p {
+            color: #718096;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-floating input {
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            padding: 16px;
+            height: 60px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-floating input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--gradient);
+            border: none;
+            color: white;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 主应用 */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            background: #f0f2f5;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--dark) 0%, #2d3748 100%);
+            padding: 30px 0;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 0 30px 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+
+        .sidebar-header h2 {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header h2 i {
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0 15px;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 20px;
+            color: #a0aec0;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .sidebar-menu a i {
+            font-size: 22px;
+            width: 28px;
+        }
+
+        /* 主内容 */
+        .main-content {
+            margin-left: 280px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .page-header p {
+            color: #718096;
+            margin-top: 8px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: none;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 25px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* 表格 */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            border: none;
+            padding: 16px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 16px;
+            vertical-align: middle;
+            border-color: #edf2f7;
+            color: #4a5568;
+        }
+
+        .table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        /* 按钮 */
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 10px;
+            padding: 8px 18px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 徽章 */
+        .badge {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        /* 智能问数悬浮按钮 */
+        .chat-float-btn {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--gradient);
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-float-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.5);
+        }
+
+        .chat-float-btn .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* 智能问数面板 */
+        .chat-panel {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+            z-index: 1001;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-panel.open {
+            right: 0;
+        }
+
+        .chat-panel-header {
+            padding: 25px;
+            background: var(--gradient);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-panel-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-panel-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-panel-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f7fafc;
+        }
+
+        .chat-message {
+            margin-bottom: 20px;
+        }
+
+        .chat-message.user {
+            text-align: right;
+        }
+
+        .chat-message .bubble {
+            display: inline-block;
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .chat-message.user .bubble {
+            background: var(--gradient);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.assistant .bubble {
+            background: white;
+            color: var(--dark);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input-wrapper input {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .chat-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .chat-send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--gradient);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 报告预览 */
+        .report-preview {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .report-preview i {
+            font-size: 80px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .report-preview h4 {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .report-preview p {
+            color: #718096;
+        }
+
+        /* 看板预览 */
+        .dashboard-preview {
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .dashboard-preview iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+
+        /* 用户信息 */
+        .user-info {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .user-details h4 {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .user-details p {
+            color: #a0aec0;
+            font-size: 13px;
+        }
+
+        /* 页面切换动画 */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 遮罩 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #a0aec0;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Markdown 表格 */
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .markdown-body th, .markdown-body td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+
+        .markdown-body strong {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div class="login-container" id="loginPage">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="bi bi-graph-up-arrow"></i>
+                <h1>数据分析系统</h1>
+                <p>查看者门户</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" placeholder="用户名" required>
+                    <label for="username">用户名</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" placeholder="密码" required>
+                    <label for="password">密码</label>
+                </div>
+                <button type="submit" class="btn-login">
+                    <span id="loginText">登录系统</span>
+                    <span id="loginLoading" class="loading" style="display:none;"></span>
+                </button>
+            </form>
+            <div style="margin-top: 20px; text-align: center; color: #a0aec0; font-size: 13px;">
+                <p>查看者账号: viewer / viewer123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用 -->
+    <div class="app-container" id="appContainer">
+        <!-- 侧边栏 -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="bi bi-graph-up-arrow"></i> 数据分析</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" data-page="reports"><i class="bi bi-file-earmark-text"></i> 报告管理</a></li>
+                <li><a href="#" data-page="dashboards"><i class="bi bi-grid-1x2"></i> 看板管理</a></li>
+            </ul>
+            <div class="user-info">
+                <div class="user-avatar"><i class="bi bi-person"></i></div>
+                <div class="user-details">
+                    <h4 id="currentUserName">查看者</h4>
+                    <p>只读权限</p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <!-- 报告页面 -->
+            <div class="page active" id="reportsPage">
+                <div class="page-header">
+                    <h1><i class="bi bi-file-earmark-text"></i> 报告管理</h1>
+                    <p>查看和下载分析报告</p>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>报告名称</th>
+                                        <th>项目</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportsList">
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="empty-state">
+                                                <i class="bi bi-inbox"></i>
+                                                <h4>暂无报告</h4>
+                                                <p>等待管理员生成报告</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 看板页面 -->
+            <div class="page" id="dashboardsPage">
+                <div class="page-header">
+                    <h1><i class="bi bi-grid-1x2"></i> 看板管理</h1>
+                    <p>查看数据可视化看板</p>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>看板名称</th>
+                                        <th>项目</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardsList">
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="empty-state">
+                                                <i class="bi bi-inbox"></i>
+                                                <h4>暂无看板</h4>
+                                                <p>等待管理员生成看板</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 智能问数悬浮按钮 -->
+        <button class="chat-float-btn" id="chatFloatBtn" title="智能问数">
+            <i class="bi bi-chat-dots"></i>
+            <span class="notification-dot"></span>
+        </button>
+
+        <!-- 智能问数面板 -->
+        <div class="chat-panel" id="chatPanel">
+            <div class="chat-panel-header">
+                <h3><i class="bi bi-robot"></i> 智能问数</h3>
+                <button class="chat-panel-close" id="chatCloseBtn"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message assistant">
+                    <div class="bubble">
+                        👋 您好！我是智能数据分析助手，有什么可以帮您的吗？
+                        <br><br>
+                        您可以问我：
+                        <br>• 各指标的平均分是多少？
+                        <br>• 不同学校的表现如何？
+                        <br>• 第四象限学生有多少？
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chatInput" placeholder="输入您的问题..." />
+                    <button class="chat-send-btn" id="chatSendBtn">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 遮罩 -->
+        <div class="overlay" id="overlay"></div>
+    </div>
+
+    <!-- 报告预览模态框 -->
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> 报告预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="report-preview" id="reportPreview">
+                        <i class="bi bi-file-earmark-word"></i>
+                        <h4 id="reportTitle">报告名称</h4>
+                        <p>Word 文档报告，点击下方按钮下载查看</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="downloadReportBtn">
+                        <i class="bi bi-download"></i> 下载报告
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 看板预览模态框 -->
+    <div class="modal fade" id="dashboardModal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-grid-1x2"></i> 看板预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 0;">
+                    <iframe id="dashboardIframe" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API 基础地址
+        const API_BASE = window.location.origin + '/api';
+        
+        // 状态
+        let token = localStorage.getItem('viewer_token');
+        let currentReportId = null;
+        let currentDashboardId = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            if (token) {
+                showApp();
+                loadData();
+            }
+        });
+
+        // 登录
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            document.getElementById('loginText').style.display = 'none';
+            document.getElementById('loginLoading').style.display = 'inline-block';
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    token = data.access_token;
+                    localStorage.setItem('viewer_token', token);
+                    document.getElementById('currentUserName').textContent = data.user?.name || username;
+                    showApp();
+                    loadData();
+                } else {
+                    alert(data.detail || '登录失败');
+                }
+            } catch (err) {
+                alert('网络错误，请稍后重试');
+            } finally {
+                document.getElementById('loginText').style.display = 'inline';
+                document.getElementById('loginLoading').style.display = 'none';
+            }
+        });
+
+        // 显示主应用
+        function showApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+        }
+
+        // 加载数据
+        async function loadData() {
+            await Promise.all([
+                loadReports(),
+                loadDashboards()
+            ]);
+        }
+
+        // 加载报告
+        async function loadReports() {
+            try {
+                const res = await fetch(`${API_BASE}/reports`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                renderReports(data.reports || []);
+            } catch (err) {
+                console.error('加载报告失败', err);
+            }
+        }
+
+        // 渲染报告列表
+        function renderReports(reports) {
+            const tbody = document.getElementById('reportsList');
+            
+            if (reports.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h4>暂无报告</h4>
+                                <p>等待管理员生成报告</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = reports.map(r => `
+                <tr>
+                    <td>
+                        <strong>${r.title}</strong>
+                    </td>
+                    <td>${r.project_name || '-'}</td>
+                    <td>${formatTime(r.created_at)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewReport(${r.id}, '${r.title}')">
+                            <i class="bi bi-eye"></i> 预览
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="downloadReport(${r.id}, '${r.title}')">
+                            <i class="bi bi-download"></i> 下载
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 加载看板
+        async function loadDashboards() {
+            try {
+                const res = await fetch(`${API_BASE}/dashboards`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                renderDashboards(data.dashboards || []);
+            } catch (err) {
+                console.error('加载看板失败', err);
+            }
+        }
+
+        // 渲染看板列表
+        function renderDashboards(dashboards) {
+            const tbody = document.getElementById('dashboardsList');
+            
+            if (dashboards.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h4>暂无看板</h4>
+                                <p>等待管理员生成看板</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = dashboards.map(d => `
+                <tr>
+                    <td>
+                        <strong>${d.title}</strong>
+                    </td>
+                    <td>${d.project_name || '-'}</td>
+                    <td>${formatTime(d.created_at)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewDashboard(${d.id})">
+                            <i class="bi bi-eye"></i> 查看
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="downloadDashboard(${d.id}, '${d.title}')">
+                            <i class="bi bi-download"></i> 下载
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 查看报告
+        function viewReport(id, title) {
+            currentReportId = id;
+            document.getElementById('reportTitle').textContent = title;
+            new bootstrap.Modal(document.getElementById('reportModal')).show();
+        }
+
+        // 下载报告
+        async function downloadReport(id, title) {
+            try {
+                const res = await fetch(`${API_BASE}/reports/${id}/download`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title}.docx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('下载失败');
+            }
+        }
+
+        // 查看看板
+        function viewDashboard(id) {
+            document.getElementById('dashboardIframe').src = `${API_BASE}/dashboards/${id}/view`;
+            new bootstrap.Modal(document.getElementById('dashboardModal')).show();
+        }
+
+        // 下载看板
+        async function downloadDashboard(id, title) {
+            try {
+                const res = await fetch(`${API_BASE}/dashboards/${id}/download`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title}.html`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('下载失败');
+            }
+        }
+
+        // 下载报告按钮
+        document.getElementById('downloadReportBtn').addEventListener('click', () => {
+            if (currentReportId) {
+                const title = document.getElementById('reportTitle').textContent;
+                downloadReport(currentReportId, title);
+            }
+        });
+
+        // 页面切换
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = link.dataset.page;
+                
+                document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${page}Page`).classList.add('active');
+            });
+        });
+
+        // 智能问数面板
+        const chatFloatBtn = document.getElementById('chatFloatBtn');
+        const chatPanel = document.getElementById('chatPanel');
+        const chatCloseBtn = document.getElementById('chatCloseBtn');
+        const overlay = document.getElementById('overlay');
+        const chatInput = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatMessages = document.getElementById('chatMessages');
+
+        chatFloatBtn.addEventListener('click', () => {
+            chatPanel.classList.add('open');
+            overlay.classList.add('show');
+        });
+
+        function closeChat() {
+            chatPanel.classList.remove('open');
+            overlay.classList.remove('show');
+        }
+
+        chatCloseBtn.addEventListener('click', closeChat);
+        overlay.addEventListener('click', closeChat);
+
+        // 发送消息
+        async function sendMessage() {
+            const question = chatInput.value.trim();
+            if (!question) return;
+
+            // 添加用户消息
+            chatMessages.innerHTML += `
+                <div class="chat-message user">
+                    <div class="bubble">${escapeHtml(question)}</div>
+                </div>
+            `;
+            chatInput.value = '';
+            scrollToBottom();
+
+            // 显示加载
+            const loadingId = 'loading-' + Date.now();
+            chatMessages.innerHTML += `
+                <div class="chat-message assistant" id="${loadingId}">
+                    <div class="bubble"><span class="loading"></span> 正在思考...</div>
+                </div>
+            `;
+            scrollToBottom();
+
+            try {
+                const res = await fetch(`${API_BASE}/chat/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ project_id: null, question })
+                });
+                
+                const data = await res.json();
+                
+                // 移除加载
+                document.getElementById(loadingId)?.remove();
+                
+                // 添加回复
+                const answerHtml = renderMarkdown(data.message || data.answer || '抱歉，我没有找到答案。');
+                chatMessages.innerHTML += `
+                    <div class="chat-message assistant">
+                        <div class="bubble">${answerHtml}</div>
+                    </div>
+                `;
+            } catch (err) {
+                document.getElementById(loadingId)?.remove();
+                chatMessages.innerHTML += `
+                    <div class="chat-message assistant">
+                        <div class="bubble">抱歉，查询失败，请稍后重试。</div>
+                    </div>
+                `;
+            }
+            
+            scrollToBottom();
+        }
+
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderMarkdown(text) {
+            if (!text) return '';
+            
+            // 转义 HTML
+            let html = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            
+            // 表格
+            html = html.replace(/\|(.+)\|\n(\|[-:\s|]+\|)\n((?:\|.+\|\n?)+)/g, (match, headerRow, sep, body) => {
+                const headers = headerRow.split('|').filter(c => c.trim());
+                const lines = body.trim().split('\n');
+                let table = '<table><thead><tr>';
+                headers.forEach(h => table += `<th>${h.trim()}</th>`);
+                table += '</tr></thead><tbody>';
+                lines.forEach(line => {
+                    const cells = line.split('|').filter(c => c.trim());
+                    if (cells.length) {
+                        table += '<tr>';
+                        cells.forEach(c => table += `<td>${c.trim()}</td>`);
+                        table += '</tr>';
+                    }
+                });
+                return table + '</tbody></table>';
+            });
+            
+            // 粗体
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            
+            // 换行
+            html = html.replace(/\n/g, '<br>');
+            
+            return html;
+        }
+
+        function formatTime(timeStr) {
+            if (!timeStr) return '-';
+            const date = new Date(timeStr);
+            return date.toLocaleString('zh-CN');
+        }
+    </script>
+</body>
+</html>

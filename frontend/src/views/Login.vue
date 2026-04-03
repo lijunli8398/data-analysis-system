@@ -1,7 +1,13 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h2 class="login-title">数据分析系统</h2>
+      <div class="login-logo">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+      <div class="login-title">
+        <h1>数据分析系统</h1>
+        <p>Data Analysis System</p>
+      </div>
       
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef">
         <el-form-item prop="username">
@@ -28,11 +34,11 @@
           <el-button 
             type="primary" 
             size="large"
-            style="width: 100%"
+            style="width: 100%; border-radius: 12px; padding: 14px;"
             :loading="loading"
             @click="handleLogin"
           >
-            登录
+            {{ loading ? '登录中...' : '登录系统' }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -81,3 +87,45 @@ const handleLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+.login-logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-logo i {
+  font-size: 70px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.login-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 8px 0;
+}
+
+.login-title p {
+  color: #718096;
+  font-size: 14px;
+  margin: 0;
+}
+
+.login-card :deep(.el-input__wrapper) {
+  border-radius: 12px;
+  padding: 4px 15px;
+  box-shadow: 0 0 0 2px #e2e8f0 inset;
+}
+
+.login-card :deep(.el-input__wrapper:focus-within) {
+  box-shadow: 0 0 0 2px #667eea inset;
+}
+</style>
