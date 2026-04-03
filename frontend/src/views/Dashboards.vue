@@ -264,8 +264,9 @@ const checkTaskStatus = async () => {
 }
 
 const viewDashboard = (row) => {
-  dashboardUrl.value = `/api/dashboards/${row.id}/view`
-  viewDialogVisible.value = true
+  // 在新窗口中打开看板
+  const url = `/api/dashboards/${row.id}/view`
+  window.open(url, '_blank')
 }
 
 const downloadDashboard = async (row) => {

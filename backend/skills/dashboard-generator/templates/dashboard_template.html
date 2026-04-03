@@ -6,7 +6,7 @@
     <title>教育学情数据看板</title>
     
     <!-- ECharts -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
     
     <!-- 样式 -->
     <style>
@@ -479,8 +479,10 @@
     
     <!-- ECharts脚本 -->
     <script>
-        // 图表1：各指标平均分对比
-        const chart1 = echarts.init(document.getElementById('chart1'));
+        // 等待 DOM 加载完成后再初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            // 图表1：各指标平均分对比
+            const chart1 = echarts.init(document.getElementById('chart1'));
         const option1 = {
             title: {
                 text: '各指标平均分对比',
@@ -881,6 +883,7 @@
             chart5.resize();
             chart6.resize();
             chart7.resize();
+        });
         });
     </script>
 </body>

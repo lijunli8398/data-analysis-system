@@ -128,6 +128,21 @@ class DashboardGenerator:
             print(f"  ⚠ 模板不存在，使用内置模板")
             html_content = self._get_builtin_template()
         
+        # 内嵌 ECharts 脚本（避免 CDN 网络问题）
+        echarts_path = self.template_dir.parent / 'static' / 'echarts.min.js'
+        if echarts_path.exists():
+            with open(echarts_path, 'r', encoding='utf-8') as f:
+                echarts_script = f.read()
+            # 替换 CDN 引用为内嵌脚本（使用字符串替换避免正则转义问题）
+            cdn_pattern = '<script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>'
+            if cdn_pattern in html_content:
+                html_content = html_content.replace(
+                    cdn_pattern,
+                    f'<script>\n{echarts_script}\n    </script>'
+                )
+                if verbose:
+                    print(f"  ✓ 已内嵌 ECharts 脚本")
+        
         # 填充数据
         html_content = self._fill_dashboard_data(html_content, verbose)
         
