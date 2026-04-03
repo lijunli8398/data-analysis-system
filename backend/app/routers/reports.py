@@ -5,17 +5,25 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 import os
 from app.database import get_db
 from app.models import Report, Project, Task, User, DataSource
 from app.routers.auth import get_current_user, get_current_admin
 from app.utils.schemas import ReportGenerate, ReportInfo, ReportList, Message
 from app.services.task_service import AsyncTaskManager
+from pydantic import BaseModel
+from typing import List, Optional
 
 router = APIRouter(prefix="/reports", tags=["报告管理"])
 
 
-@router.get("", response_model=ReportList)
+class ReportInfoWithProject(ReportInfo):
+    """报告信息（含项目名称）"""
+    project_name: Optional[str] = None
+
+
+@router.get("")
 async def list_reports(
     project_id: int = None,
     skip: int = 0,
@@ -24,23 +32,38 @@ async def list_reports(
     db: AsyncSession = Depends(get_db)
 ):
     """获取报告列表"""
-    query = select(Report)
+    query = select(Report).options(selectinload(Report.project))
     
     if project_id:
         query = query.where(Report.project_id == project_id)
     
     # 统计总数
-    count_query = select(func.count()).select_from(query.subquery())
+    count_query = select(func.count()).select_from(Report)
+    if project_id:
+        count_query = count_query.where(Report.project_id == project_id)
     total = await db.scalar(count_query)
     
     # 分页查询
     result = await db.execute(query.offset(skip).limit(limit).order_by(Report.created_at.desc()))
     reports = result.scalars().all()
     
-    return ReportList(
-        total=total or 0,
-        reports=[ReportInfo.model_validate(r) for r in reports]
-    )
+    # 构建返回数据
+    report_list = []
+    for r in reports:
+        report_dict = {
+            'id': r.id,
+            'project_id': r.project_id,
+            'project_name': r.project.name if r.project else None,
+            'task_id': r.task_id,
+            'title': r.title,
+            'file_path': r.file_path,
+            'summary': r.summary,
+            'insights_json': r.insights_json,
+            'created_at': r.created_at.isoformat() + 'Z' if r.created_at else None
+        }
+        report_list.append(report_dict)
+    
+    return {"total": total or 0, "reports": report_list}
 
 
 @router.get("/{report_id}", response_model=ReportInfo)

@@ -59,7 +59,11 @@ export const projectAPI = {
   get: (id) => api.get(`/projects/${id}`),
   create: (data) => api.post('/projects', data),
   update: (id, data) => api.put(`/projects/${id}`, data),
-  delete: (id) => api.delete(`/projects/${id}`)
+  delete: (id) => api.delete(`/projects/${id}`),
+  // 数据文件相关
+  getDataFiles: (projectId) => api.get(`/projects/${projectId}/data-files`),
+  downloadDataFile: (id) => api.get(`/projects/data-files/${id}/download`, { responseType: 'blob' }),
+  deleteDataFile: (id) => api.delete(`/projects/data-files/${id}`)
 }
 
 // ========== 数据上传API ==========

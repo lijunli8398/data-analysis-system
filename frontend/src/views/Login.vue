@@ -36,11 +36,6 @@
           </el-button>
         </el-form-item>
       </el-form>
-      
-      <div style="text-align: center; color: #999; margin-top: 20px; font-size: 12px;">
-        <p>管理员: admin / admin123</p>
-        <p>查看者: viewer / viewer123</p>
-      </div>
     </div>
   </div>
 </template>

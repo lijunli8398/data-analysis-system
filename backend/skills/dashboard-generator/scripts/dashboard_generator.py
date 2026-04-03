@@ -74,15 +74,25 @@ class DashboardGenerator:
             if filepath.exists():
                 base_data = pd.read_csv(filepath, encoding='utf-8-sig')
                 if '性别' in base_data.columns:
+                    # 获取年级信息
+                    grade = ''
+                    if '年级' in base_data.columns:
+                        grades = base_data['年级'].unique()
+                        if len(grades) == 1:
+                            grade = str(grades[0])
+                        elif len(grades) > 1:
+                            grade = '多年级'
+                    
                     self.data['base_stats'] = {
                         'total_students': len(base_data),
                         'male_count': (base_data['性别'] == '男').sum(),
                         'female_count': (base_data['性别'] == '女').sum(),
-                        'schools_count': base_data['学校代码'].nunique() if '学校代码' in base_data.columns else 0
+                        'schools_count': base_data['学校代码'].nunique() if '学校代码' in base_data.columns else 0,
+                        'grade': grade
                     }
                     if verbose:
-                        print(f"  ✓ 基础统计数据: {self.data['base_stats']['total_students']}名学生")
-                    break
+                        print(f"  ✓ 基础统计数据: {self.data['base_stats']['total_students']}名学生, 年级: {grade}")
+                break
         
         # 加载数据配置
         config_path = self.data_source / 'data_config.json'
@@ -178,6 +188,17 @@ class DashboardGenerator:
         
         # 更新头部信息
         html = html.replace('数据更新时间：2026-04-02', f'数据更新时间：{self.config["update_time"]}')
+        
+        # 动态更新标题（使用年级信息）
+        grade = self.data.get('base_stats', {}).get('grade', '')
+        if grade:
+            new_subtitle = f'{grade}学生成长环境与学生发展综合分析'
+            # 替换所有包含"学生成长环境与学生发展综合分析"的标题
+            import re
+            html = re.sub(r'[一二三四五六七八九十]+年级学生成长环境与学生发展综合分析', new_subtitle, html)
+            # 更新数据来源
+            html = html.replace("数据来源：学生指标得分清单", f"数据来源：{grade}学生指标得分清单")
+            
         
         # 更新概览卡片数据
         html = self._update_card_value(html, '总学生数', f'{total_students:,}')

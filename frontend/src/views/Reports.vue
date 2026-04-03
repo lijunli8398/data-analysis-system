@@ -14,6 +14,11 @@
     <!-- 报告列表 -->
     <el-table :data="reports" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
+      <el-table-column prop="project_name" label="项目名称" width="150">
+        <template #default="{ row }">
+          {{ row.project_name || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="title" label="报告标题" />
       <el-table-column prop="summary" label="摘要">
         <template #default="{ row }">
@@ -22,10 +27,13 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="created_at" label="创建时间" width="180" />
-      <el-table-column label="操作" width="200">
+      <el-table-column label="创建时间" width="160">
         <template #default="{ row }">
-          <el-button size="small" @click="viewReport(row)">查看</el-button>
+          {{ formatTime(row.created_at) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="150">
+        <template #default="{ row }">
           <el-button size="small" type="success" @click="downloadReport(row)">下载</el-button>
           <el-button 
             v-if="userStore.isAdmin"
@@ -55,7 +63,7 @@
   <el-dialog v-model="generateDialogVisible" title="生成报告" width="500px">
     <el-form :model="reportForm" :rules="rules" ref="reportFormRef">
       <el-form-item prop="project_id" label="选择项目">
-        <el-select v-model="reportForm.project_id" placeholder="请选择项目">
+        <el-select v-model="reportForm.project_id" placeholder="请选择项目" style="width: 100%">
           <el-option 
             v-for="p in projects" 
             :key="p.id" 
@@ -65,40 +73,18 @@
         </el-select>
       </el-form-item>
       <el-form-item prop="title" label="报告标题">
-        <el-input v-model="reportForm.title" />
+        <el-input v-model="reportForm.title" placeholder="请输入报告标题" />
       </el-form-item>
     </el-form>
     
     <div style="color: #999; margin-top: 15px;">
-      提示: 报告将异步生成，生成完成后可在列表查看
+      提示: 报告将异步生成，生成完成后可在列表查看并下载
     </div>
     
     <template #footer>
       <el-button @click="generateDialogVisible = false">取消</el-button>
       <el-button type="primary" :loading="generateLoading" @click="generateReport">生成</el-button>
     </template>
-  </el-dialog>
-  
-  <!-- 报告详情对话框 -->
-  <el-dialog v-model="detailDialogVisible" title="报告详情" width="700px">
-    <div v-if="selectedReport">
-      <h4>{{ selectedReport.title }}</h4>
-      <p style="color: #999; margin: 10px 0;">创建时间: {{ selectedReport.created_at }}</p>
-      
-      <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 20px;">
-        <h5 style="margin-bottom: 10px;">摘要</h5>
-        <p>{{ selectedReport.summary || '暂无摘要' }}</p>
-      </div>
-      
-      <div v-if="selectedReport.insights_json" style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 20px;">
-        <h5 style="margin-bottom: 10px;">关键洞察</h5>
-        <ul>
-          <li v-for="(insight, i) in getInsights(selectedReport.insights_json)" :key="i">
-            {{ insight }}
-          </li>
-        </ul>
-      </div>
-    </div>
   </el-dialog>
   
   <!-- 任务状态监控 -->
@@ -143,9 +129,6 @@ const rules = {
   title: [{ required: true, message: '请输入报告标题', trigger: 'blur' }]
 }
 
-const detailDialogVisible = ref(false)
-const selectedReport = ref(null)
-
 const currentTask = ref(null)
 let taskCheckInterval = null
 
@@ -159,6 +142,19 @@ onUnmounted(() => {
     clearInterval(taskCheckInterval)
   }
 })
+
+// 时间格式化函数
+const formatTime = (timeStr) => {
+  if (!timeStr) return '-'
+  const date = new Date(timeStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const loadReports = async () => {
   try {
@@ -251,19 +247,6 @@ const checkTaskStatus = async () => {
   }
 }
 
-const viewReport = (row) => {
-  selectedReport.value = row
-  detailDialogVisible.value = true
-}
-
-const getInsights = (jsonStr) => {
-  try {
-    return JSON.parse(jsonStr)
-  } catch {
-    return []
-  }
-}
-
 const downloadReport = async (row) => {
   try {
     const blob = await reportAPI.download(row.id)
@@ -280,7 +263,7 @@ const downloadReport = async (row) => {
 
 const deleteReport = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定删除报告 ${row.title}?`, '确认删除', {
+    await ElMessageBox.confirm(`确定删除报告 "${row.title}"?`, '确认删除', {
       type: 'warning'
     })
     

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 import os
 from app.database import get_db
 from app.models import Dashboard, Project, DataSource, User
@@ -15,7 +16,7 @@ from app.services.task_service import AsyncTaskManager
 router = APIRouter(prefix="/dashboards", tags=["看板管理"])
 
 
-@router.get("", response_model=DashboardList)
+@router.get("")
 async def list_dashboards(
     project_id: int = None,
     skip: int = 0,
@@ -24,23 +25,38 @@ async def list_dashboards(
     db: AsyncSession = Depends(get_db)
 ):
     """获取看板列表"""
-    query = select(Dashboard)
+    query = select(Dashboard).options(selectinload(Dashboard.project))
     
     if project_id:
         query = query.where(Dashboard.project_id == project_id)
     
     # 统计总数
-    count_query = select(func.count()).select_from(query.subquery())
+    count_query = select(func.count()).select_from(Dashboard)
+    if project_id:
+        count_query = count_query.where(Dashboard.project_id == project_id)
     total = await db.scalar(count_query)
     
     # 分页查询
     result = await db.execute(query.offset(skip).limit(limit).order_by(Dashboard.created_at.desc()))
     dashboards = result.scalars().all()
     
-    return DashboardList(
-        total=total or 0,
-        dashboards=[DashboardInfo.model_validate(d) for d in dashboards]
-    )
+    # 构建返回数据
+    dashboard_list = []
+    for d in dashboards:
+        dashboard_dict = {
+            'id': d.id,
+            'project_id': d.project_id,
+            'project_name': d.project.name if d.project else None,
+            'task_id': d.task_id,
+            'title': d.title,
+            'file_path': d.file_path,
+            'summary': d.summary,
+            'insights_json': d.insights_json,
+            'created_at': d.created_at.isoformat() + 'Z' if d.created_at else None
+        }
+        dashboard_list.append(dashboard_dict)
+    
+    return {"total": total or 0, "dashboards": dashboard_list}
 
 
 @router.get("/{dashboard_id}", response_model=DashboardInfo)
@@ -65,10 +81,9 @@ async def get_dashboard(
 @router.get("/{dashboard_id}/view", response_class=HTMLResponse)
 async def view_dashboard(
     dashboard_id: int,
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """查看看板内容（HTML）"""
+    """查看看板内容（HTML）- 无需认证"""
     result = await db.execute(select(Dashboard).where(Dashboard.id == dashboard_id))
     dashboard = result.scalar_one_or_none()
     

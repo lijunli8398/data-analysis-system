@@ -92,14 +92,14 @@ class QwenService:
 "{question}"
 
 返回JSON格式结果，包含：
-{
+{{
     "question_type": "问题类型",
     "metrics": ["涉及的指标列表"],
     "dimensions": ["涉及的维度列表"],
     "scope": "分析范围",
     "needs_calculation": true/false,
     "calculation_hint": "计算方式提示"
-}"""
+}}"""
         
         response = await self.chat(prompt, model=settings.QWEN_MODEL_TURBO, system_prompt=system_prompt)
         
@@ -168,13 +168,13 @@ class QwenService:
 {json.dumps(data_info, ensure_ascii=False, indent=2)}
 
 请分析这个数据文件，建议分析参数配置。返回JSON格式：
-{
+{{
     "env_columns": ["成长环境指标列名"],
     "dev_columns": ["学生发展指标列名"],
     "analysis_focus": ["重点关注的分析维度"],
     "threshold": 风险阈值建议,
     "expected_insights": ["预期发现"]
-}"""
+}}"""
         
         response = await self.chat(prompt, system_prompt=system_prompt)
         
@@ -210,11 +210,11 @@ class QwenService:
 {json.dumps(analysis_results, ensure_ascii=False, indent=2)}
 
 请生成报告增强内容。返回JSON格式：
-{
+{{
     "summary": "报告摘要",
     "insights": ["关键洞察列表"],
     "warnings": ["异常或警告信息"]
-}"""
+}}"""
         
         response = await self.chat(prompt, system_prompt=system_prompt)
         
@@ -245,14 +245,13 @@ class QwenService:
 {json.dumps(chart_data, ensure_ascii=False, indent=2)}
 
 请为每个图表生成解读。返回JSON格式：
-{
-    "chart_insights": {
+{{
+    "chart_insights": {{
         "chart1": "指标平均分对比解读",
-        "chart2": "风险暴露率解读",
-        ...
-    },
+        "chart2": "风险暴露率解读"
+    }},
     "key_highlights": ["看板亮点"]
-}"""
+}}"""
         
         response = await self.chat(prompt, model=settings.QWEN_MODEL_TURBO, system_prompt=system_prompt)
         

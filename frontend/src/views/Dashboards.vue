@@ -1,5 +1,9 @@
 <template>
   <div class="content-card">
+    <!-- 提示信息 -->
+    <div style="background: #ecf5ff; padding: 12px 16px; border-radius: 4px; color: #409eff; margin-bottom: 15px;">
+      需要先在【报告管理】中生成报告后，才能在此页面生成数据看板。
+    </div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
       <h3>看板管理</h3>
       <el-button 
@@ -13,17 +17,26 @@
     
     <!-- 看板列表 -->
     <el-table :data="dashboards" style="width: 100%" v-loading="loading">
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="title" label="看板标题" />
-      <el-table-column prop="summary" label="摘要">
+      <el-table-column prop="id" label="ID" width="60" />
+      <el-table-column prop="project_name" label="项目名称" width="120">
         <template #default="{ row }">
-          <div style="max-height: 60px; overflow: hidden;">
+          {{ row.project_name || '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="title" label="看板标题" width="180" />
+      <el-table-column prop="summary" label="摘要" min-width="200">
+        <template #default="{ row }">
+          <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             {{ row.summary || '暂无摘要' }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="created_at" label="创建时间" width="180" />
-      <el-table-column label="操作" width="200">
+      <el-table-column label="创建时间" width="150">
+        <template #default="{ row }">
+          {{ formatTime(row.created_at) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button size="small" type="primary" @click="viewDashboard(row)">查看</el-button>
           <el-button size="small" type="success" @click="downloadDashboard(row)">下载</el-button>
@@ -146,6 +159,19 @@ onUnmounted(() => {
     clearInterval(taskCheckInterval)
   }
 })
+
+// 时间格式化函数
+const formatTime = (timeStr) => {
+  if (!timeStr) return '-'
+  const date = new Date(timeStr)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const loadDashboards = async () => {
   try {

@@ -1,5 +1,9 @@
 <template>
   <div class="content-card">
+    <!-- 提示信息 -->
+    <div style="background: #fdf6ec; padding: 12px 16px; border-radius: 4px; color: #e6a23c; margin-bottom: 15px;">
+      当前系统是体验版，只能上传学情调研学生指标得分数据。其他数据分析功能，正在开发中。
+    </div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
       <h3>项目管理</h3>
       <el-button 
@@ -16,18 +20,24 @@
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="description" label="描述" />
-      <el-table-column label="创建时间" width="180">
+      <el-table-column label="数据文件" width="100">
+        <template #default="{ row }">
+          <el-tag v-if="row.data_count > 0" type="success">{{ row.data_count }} 个</el-tag>
+          <el-tag v-else type="info">无</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" width="150">
         <template #default="{ row }">
           {{ formatTime(row.created_at) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="250">
+      <el-table-column label="操作" width="300">
         <template #default="{ row }">
-          <el-button size="small" @click="selectProject(row)">选择</el-button>
+          <el-button size="small" type="primary" @click="showDataDialog(row)">查看数据</el-button>
           <el-button 
             v-if="userStore.isAdmin"
             size="small" 
-            type="primary" 
+            type="success" 
             @click="showUploadDialog(row)"
           >
             上传数据
@@ -101,12 +111,44 @@
     </template>
   </el-dialog>
   
-  <!-- 当前选中项目提示 -->
-  <div v-if="currentProject" class="content-card" style="margin-top: 20px;">
-    <el-alert title="当前项目" type="info" :closable="false">
-      {{ currentProject.name }} - {{ currentProject.description }}
-    </el-alert>
-  </div>
+  <!-- 查看数据对话框 -->
+  <el-dialog v-model="dataDialogVisible" title="项目数据文件" width="700px">
+    <div style="margin-bottom: 15px; color: #666;">
+      项目: {{ selectedProject?.name }}
+    </div>
+    
+    <el-table :data="dataFiles" style="width: 100%" v-loading="dataLoading" max-height="400">
+      <el-table-column prop="id" label="ID" width="80" />
+      <el-table-column prop="filename" label="文件名" />
+      <el-table-column label="文件大小" width="100">
+        <template #default="{ row }">
+          {{ formatFileSize(row.file_size) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="上传时间" width="150">
+        <template #default="{ row }">
+          {{ formatTime(row.created_at) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="150">
+        <template #default="{ row }">
+          <el-button size="small" type="success" @click="downloadDataFile(row)">下载</el-button>
+          <el-button 
+            v-if="userStore.isAdmin"
+            size="small" 
+            type="danger" 
+            @click="deleteDataFile(row)"
+          >
+            删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    
+    <div v-if="dataFiles.length === 0 && !dataLoading" style="text-align: center; padding: 40px; color: #999;">
+      暂无数据文件
+    </div>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -141,16 +183,19 @@ const selectedProject = ref(null)
 const uploadRef = ref()
 const selectedFile = ref(null)
 
+// 数据文件相关
+const dataDialogVisible = ref(false)
+const dataLoading = ref(false)
+const dataFiles = ref([])
+
 onMounted(() => {
   loadProjects()
 })
 
-// 时间格式化函数（UTC转本地时间）
+// 时间格式化函数
 const formatTime = (timeStr) => {
   if (!timeStr) return '-'
   const date = new Date(timeStr)
-  // 添加8小时转换为北京时间
-  date.setHours(date.getHours() + 8)
   return date.toLocaleString('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -158,6 +203,14 @@ const formatTime = (timeStr) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+// 文件大小格式化
+const formatFileSize = (bytes) => {
+  if (!bytes) return '-'
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
 const loadProjects = async () => {
@@ -200,9 +253,54 @@ const createProject = async () => {
   }
 }
 
-const selectProject = (row) => {
-  currentProject.value = row
-  ElMessage.success(`已选择项目: ${row.name}`)
+const showDataDialog = async (row) => {
+  selectedProject.value = row
+  dataDialogVisible.value = true
+  await loadDataFiles(row.id)
+}
+
+const loadDataFiles = async (projectId) => {
+  try {
+    dataLoading.value = true
+    const res = await projectAPI.getDataFiles(projectId)
+    dataFiles.value = res.files || []
+  } catch (error) {
+    console.error(error)
+    dataFiles.value = []
+  } finally {
+    dataLoading.value = false
+  }
+}
+
+const downloadDataFile = async (row) => {
+  try {
+    const blob = await projectAPI.downloadDataFile(row.id)
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = row.filename
+    a.click()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const deleteDataFile = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定删除文件 ${row.filename}?`, '确认删除', {
+      type: 'warning'
+    })
+    
+    await projectAPI.deleteDataFile(row.id)
+    ElMessage.success('文件删除成功')
+    await loadDataFiles(selectedProject.value.id)
+    loadProjects() // 刷新列表中的数据文件数量
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error(error)
+    }
+  }
 }
 
 const showUploadDialog = (row) => {
@@ -226,6 +324,7 @@ const uploadFile = async () => {
     await uploadAPI.upload(selectedProject.value.id, selectedFile.value)
     ElMessage.success('数据上传成功')
     uploadDialogVisible.value = false
+    loadProjects() // 刷新列表中的数据文件数量
   } catch (error) {
     console.error(error)
   } finally {
@@ -235,17 +334,13 @@ const uploadFile = async () => {
 
 const deleteProject = async (row) => {
   try {
-    await ElMessageBox.confirm(`确定删除项目 ${row.name}?`, '确认删除', {
+    await ElMessageBox.confirm(`确定删除项目 "${row.name}"？此操作将同时删除项目下的所有数据文件、报告和看板。`, '确认删除', {
       type: 'warning'
     })
     
     await projectAPI.delete(row.id)
     ElMessage.success('项目删除成功')
     loadProjects()
-    
-    if (currentProject.value?.id === row.id) {
-      currentProject.value = null
-    }
   } catch (error) {
     if (error !== 'cancel') {
       console.error(error)
