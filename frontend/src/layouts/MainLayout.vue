@@ -43,6 +43,7 @@
         </div>
         <button class="logout-btn" @click="handleLogout">
           <i class="bi bi-box-arrow-right"></i>
+          <span>退出</span>
         </button>
       </div>
     </aside>
@@ -60,6 +61,7 @@
       title="智能问数"
     >
       <i class="bi bi-chat-dots"></i>
+      <span>智能问数</span>
     </button>
   </div>
 </template>
@@ -210,23 +212,27 @@ const goToChat = () => {
 }
 
 .logout-btn {
-  width: 42px;
   height: 42px;
+  padding: 0 16px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   border: none;
-  color: #a0aec0;
+  color: white;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logout-btn i {
   font-size: 18px;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* 主内容 */
@@ -242,24 +248,29 @@ const goToChat = () => {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  height: 50px;
+  padding: 0 20px;
+  border-radius: 25px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
-  font-size: 26px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
   transition: all 0.3s;
   z-index: 99;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+}
+
+.chat-float-btn i {
+  font-size: 22px;
 }
 
 .chat-float-btn:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
   box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
 }
 </style>
